@@ -272,7 +272,7 @@ def get_all_status():
 
 
 # ---------------------------------------------------------------------------
-# HTML Template
+# 精美浅色系 HTML 模板
 # ---------------------------------------------------------------------------
 
 HTML_PAGE = r"""<!DOCTYPE html>
@@ -283,202 +283,205 @@ HTML_PAGE = r"""<!DOCTYPE html>
 <title>OpenClaw Hive - Task Monitor</title>
 <style>
 :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
+    --bg-primary: #f6f8fa;
+    --bg-secondary: #ffffff;
     --bg-card: #ffffff;
-    --bg-card-hover: #f1f5f9;
-    --text-primary: #1e293b;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --accent-blue: #3b82f6;
-    --accent-green: #16a34a;
-    --accent-red: #dc2626;
-    --accent-yellow: #ca8a04;
-    --accent-purple: #7c3aed;
-    --border: #e2e8f0;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --bg-card-hover: #fafbfc;
+    --text-primary: #24292f;
+    --text-secondary: #57606a;
+    --text-muted: #8c95a0;
+    --accent-blue: #0969da;
+    --accent-blue-light: #ddf4ff;
+    --accent-green: #1a7f37;
+    --accent-green-light: #dafbe1;
+    --accent-red: #cf222e;
+    --accent-red-light: #ffebe9;
+    --accent-yellow: #9a6700;
+    --accent-yellow-light: #fff8c5;
+    --border: #d0d7de;
+    --border-light: #e1e4e8;
+    --shadow-sm: 0 1px 2px rgba(31,35,40,0.04);
+    --shadow-md: 0 3px 6px rgba(140,149,160,0.1);
+    --radius-lg: 10px;
+    --radius-md: 6px;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    background: var(--bg-primary); color: var(--text-primary); min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5;
 }
 .header {
     background: var(--bg-secondary); border-bottom: 1px solid var(--border);
-    padding: 16px 32px; display: flex; align-items: center;
+    padding: 14px 32px; display: flex; align-items: center;
     justify-content: space-between; position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow-sm);
 }
 .header-left { display: flex; align-items: center; gap: 12px; }
 .header h1 {
-    font-size: 20px; font-weight: 700;
-    color: var(--accent-blue);
+    font-size: 18px; font-weight: 600; color: var(--text-primary);
 }
 .header .logo {
-    width: 32px; height: 32px;
-    background: var(--accent-blue);
-    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+    width: 30px; height: 30px; background: var(--accent-blue-light);
+    border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 16px;
 }
 .header-right {
-    display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 20px; font-size: 13px; color: var(--text-secondary);
 }
 .refresh-btn {
-    background: var(--accent-blue); color: white; border: none;
-    padding: 8px 16px; border-radius: 8px; cursor: pointer;
-    font-size: 13px; font-weight: 500; transition: all 0.2s;
-    display: flex; align-items: center; gap: 6px;
+    background: var(--accent-blue); color: white; border: 1px solid rgba(27,31,36,0.15);
+    padding: 6px 14px; border-radius: var(--radius-md); cursor: pointer;
+    font-size: 13px; font-weight: 500; transition: all 0.15s ease;
+    display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm);
 }
-.refresh-btn:hover { background: #2563eb; transform: translateY(-1px); }
-.refresh-btn:active { transform: translateY(0); }
+.refresh-btn:hover { background: #0c63ce; }
+.refresh-btn:active { transform: translateY(1px); }
 .refresh-btn.spinning .refresh-icon { animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
 .auto-refresh { display: flex; align-items: center; gap: 8px; }
 .auto-refresh select {
-    background: var(--bg-primary); color: var(--text-primary);
-    border: 1px solid var(--border); padding: 6px 10px;
-    border-radius: 6px; font-size: 13px; cursor: pointer;
+    background: var(--bg-secondary); color: var(--text-primary);
+    border: 1px solid var(--border); padding: 4px 8px;
+    border-radius: var(--radius-md); font-size: 13px; cursor: pointer; outline: none;
 }
-.container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.auto-refresh select:focus { border-color: var(--accent-blue); }
+
+.container { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
+
+/* 概览卡片样式优化 */
 .summary {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px; margin-bottom: 24px;
+    gap: 16px; margin-bottom: 32px;
 }
 .summary-card {
     background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px; text-align: center; transition: transform 0.2s;
+    border-radius: var(--radius-lg); padding: 16px 20px; display: flex; 
+    flex-direction: column; justify-content: space-between;
+    box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;
 }
-.summary-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.summary-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .summary-card .label {
-    font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text-muted); margin-bottom: 8px;
+    font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px;
 }
-.summary-card .value { font-size: 32px; font-weight: 700; }
+.summary-card .value { font-size: 28px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, monospace; }
+.summary-card.total { border-left: 4px solid var(--accent-blue); }
 .summary-card.total .value { color: var(--accent-blue); }
+.summary-card.completed { border-left: 4px solid var(--accent-green); }
 .summary-card.completed .value { color: var(--accent-green); }
+.summary-card.failed { border-left: 4px solid var(--accent-red); }
 .summary-card.failed .value { color: var(--accent-red); }
+.summary-card.running { border-left: 4px solid var(--accent-yellow); }
 .summary-card.running .value { color: var(--accent-yellow); }
 
+/* 任务卡片样式优化 */
 .task-card {
     background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; margin-bottom: 16px; overflow: hidden; transition: box-shadow 0.2s;
+    border-radius: var(--radius-lg); margin-bottom: 16px; overflow: hidden; 
+    box-shadow: var(--shadow-sm); transition: box-shadow 0.2s;
 }
-.task-card:hover { box-shadow: var(--shadow); }
+.task-card:hover { box-shadow: var(--shadow-md); }
 .task-card-header {
-    padding: 20px 24px; display: flex; align-items: center;
+    padding: 16px 24px; display: flex; align-items: center;
     justify-content: space-between; cursor: pointer; user-select: none;
 }
 .task-card-header:hover { background: var(--bg-card-hover); }
-.task-name { display: flex; align-items: center; gap: 12px; }
+.task-name { display: flex; align-items: center; gap: 14px; }
 .task-name .seq-num {
-    font-size: 16px; font-weight: 700; color: var(--accent-blue);
-    min-width: 28px; text-align: center;
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    background: var(--bg-primary); width: 24px; height: 24px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border-light);
 }
-.task-name .config-icon { font-size: 20px; }
-.task-name h3 { font-size: 16px; font-weight: 600; }
+.task-name .config-icon { font-size: 16px; display: flex; align-items: center; }
+.task-name h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
 .task-name .config-file { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* 优雅的状态标签 */
 .status-badge {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 12px; border-radius: 20px; font-size: 12px;
-    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;
 }
-.status-badge.running {
-    background: #fef9c3; color: #a16207;
-    border: 1px solid #fde047;
-}
-.status-badge.stopped {
-    background: #f1f5f9; color: var(--text-muted);
-    border: 1px solid #e2e8f0;
-}
-.status-badge.error {
-    background: #fef2f2; color: var(--accent-red);
-    border: 1px solid #fecaca;
-}
-.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.status-badge.running .status-dot {
-    background: #eab308; animation: pulse 2s infinite;
-}
-.status-badge.stopped .status-dot { background: #cbd5e1; }
-.status-badge.error .status-dot { background: var(--accent-red); }
-@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+.status-badge.running { background: var(--accent-green-light); color: var(--accent-green); }
+.status-badge.stopped { background: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border); }
+.status-badge.error { background: var(--accent-red-light); color: var(--accent-red); }
 
-.task-card-body { padding: 0 24px 20px; display: none; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.status-badge.running .status-dot { background: var(--accent-green); animation: pulse 2s infinite; }
+.status-badge.stopped .status-dot { background: var(--text-muted); }
+.status-badge.error .status-dot { background: var(--accent-red); }
+@keyframes pulse { 0%,100% { opacity:1; transform: scale(1); } 50% { opacity:0.4; transform: scale(1.1); } }
+
+.task-card-body { padding: 0 24px 24px; display: none; border-top: 1px solid var(--border-light); background: #fafbfc; }
 .task-card.expanded .task-card-body { display: block; }
-.expand-icon { transition: transform 0.2s; color: var(--text-muted); font-size: 14px; }
+.expand-icon { transition: transform 0.2s; color: var(--text-muted); font-size: 12px; }
 .task-card.expanded .expand-icon { transform: rotate(180deg); }
 
-.progress-section { margin-bottom: 20px; }
+/* 进度条美化 */
+.progress-section { margin-top: 20px; margin-bottom: 20px; }
 .progress-bar-container {
-    background: #f1f5f9; border-radius: 8px; height: 28px;
+    background: #eaeef2; border-radius: 6px; height: 16px;
     overflow: hidden; display: flex; margin-bottom: 8px;
 }
 .progress-completed {
-    background: linear-gradient(90deg, #16a34a, #22c55e); height: 100%;
-    transition: width 0.5s ease; display: flex; align-items: center;
-    justify-content: center; font-size: 11px; font-weight: 600; color: white; min-width: 0;
+    background: #2da44e; height: 100%; transition: width 0.4s ease; 
+    display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: white;
 }
 .progress-failed {
-    background: linear-gradient(90deg, #dc2626, #ef4444); height: 100%;
-    transition: width 0.5s ease; display: flex; align-items: center;
-    justify-content: center; font-size: 11px; font-weight: 600; color: white; min-width: 0;
+    background: #cf222e; height: 100%; transition: width 0.4s ease;
+    display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: white;
 }
-.progress-pending { background: #f1f5f9; height: 100%; flex: 1; }
+.progress-pending { background: transparent; height: 100%; flex: 1; }
 .progress-labels {
     display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);
 }
 .progress-labels .success-rate { font-weight: 600; color: var(--accent-green); }
 
+/* 数据格栅 */
 .stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 12px; margin-bottom: 20px;
 }
-.stat-item { background: #f8fafc; border-radius: 8px; padding: 12px; text-align: center; }
-.stat-item .stat-label {
-    font-size: 11px; color: var(--text-muted); text-transform: uppercase;
-    letter-spacing: 0.5px; margin-bottom: 4px;
-}
-.stat-item .stat-value { font-size: 18px; font-weight: 700; }
+.stat-item { background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 10px; text-align: center; }
+.stat-item .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
+.stat-item .stat-value { font-size: 16px; font-weight: 600; font-family: monospace; }
 
-.error-section { margin-bottom: 16px; }
-.error-section h4 {
-    font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;
-    text-transform: uppercase; letter-spacing: 0.5px;
-}
+/* 错误细则美化 */
+.error-section { margin-bottom: 20px; }
+.error-section h4 { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600; }
 .error-item {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; background: #fef2f2; border-radius: 6px;
-    margin-bottom: 4px; font-size: 13px;
+    padding: 6px 12px; background: var(--accent-red-light); border-radius: var(--radius-md);
+    margin-bottom: 4px; font-size: 12px; border: 1px solid rgba(207,34,46,0.05);
 }
-.error-item .error-name { color: var(--text-secondary); }
+.error-item .error-name { color: #a40e1b; font-weight: 500; }
 .error-item .error-count {
-    background: rgba(239,68,68,0.15); color: var(--accent-red);
-    padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 12px;
+    background: rgba(207,34,46,0.1); color: var(--accent-red);
+    padding: 1px 6px; border-radius: 10px; font-weight: 600; font-size: 11px;
 }
 
-.log-section h4 {
-    font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;
-    text-transform: uppercase; letter-spacing: 0.5px;
-}
+/* 日志查看器美化（浅色极客风） */
+.log-section h4 { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600; }
 .log-viewer {
-    background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
-    padding: 12px; max-height: 300px; overflow-y: auto;
-    font-family: 'Cascadia Code','Fira Code','Consolas',monospace;
-    font-size: 12px; line-height: 1.6;
+    background: #24292f; border: 1px solid #1b1f23; border-radius: var(--radius-md);
+    padding: 14px; max-height: 260px; overflow-y: auto;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 12px; line-height: 1.5; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15);
 }
 .log-viewer::-webkit-scrollbar { width: 6px; }
 .log-viewer::-webkit-scrollbar-track { background: transparent; }
-.log-viewer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.log-line { color: var(--text-secondary); white-space: pre-wrap; word-break: break-all; }
-.log-line.error { color: #dc2626; }
-.log-line.warning { color: #ca8a04; }
-.log-line.success { color: #16a34a; }
+.log-viewer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+.log-line { color: #c9d1d9; white-space: pre-wrap; word-break: break-all; margin-bottom: 2px; }
+.log-line.error { color: #ff7b72; font-weight: 500; }
+.log-line.warning { color: #d2a8ff; }
+.log-line.success { color: #7ee787; }
 
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
-.empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-secondary); }
-.empty-state p { font-size: 14px; }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state h3 { font-size: 16px; margin-bottom: 4px; color: var(--text-secondary); }
 
 .footer {
-    text-align: center; padding: 24px; color: var(--text-muted);
-    font-size: 12px; border-top: 1px solid var(--border); margin-top: 24px;
+    text-align: center; padding: 28px; color: var(--text-muted);
+    font-size: 12px; border-top: 1px solid var(--border); margin-top: 32px; background: var(--bg-secondary);
 }
 
 @media (max-width: 768px) {
@@ -486,7 +489,7 @@ body {
     .container { padding: 16px; }
     .summary { grid-template-columns: repeat(2, 1fr); }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .task-card-header { padding: 16px; }
+    .task-card-header { padding: 14px 16px; }
     .task-card-body { padding: 0 16px 16px; }
 }
 </style>
@@ -500,16 +503,16 @@ body {
     </div>
     <div class="header-right">
         <div class="auto-refresh">
-            <span>Auto-refresh:</span>
+            <span>自动刷新:</span>
             <select id="refreshInterval" onchange="setAutoRefresh(this.value)">
-                <option value="0">Off</option>
-                <option value="120" selected>2min</option>
-                <option value="300">5min</option>
-                <option value="600">10min</option>
+                <option value="0">关闭</option>
+                <option value="120" selected>2分钟</option>
+                <option value="300">5分钟</option>
+                <option value="600">10分钟</option>
             </select>
         </div>
         <button class="refresh-btn" onclick="refreshData()">
-            <span class="refresh-icon">&#x21bb;</span> Refresh
+            <span class="refresh-icon">&#x21bb;</span> 刷新数据
         </button>
         <span id="lastUpdate"></span>
     </div>
@@ -521,7 +524,7 @@ body {
 </div>
 
 <div class="footer">
-    OpenClaw Hive Task Monitor &middot; Data refreshes from local config_tasks &amp; outputs
+    OpenClaw Hive Task Monitor &middot; 数据自动读取自本地 config_tasks 与 outputs 目录
 </div>
 
 <script>
@@ -547,22 +550,22 @@ function refreshData() {
         .then(function(data) {
             renderSummary(data.summary);
             renderTasks(data.tasks);
-            document.getElementById('lastUpdate').textContent = 'Updated: ' + formatTime();
+            document.getElementById('lastUpdate').textContent = '上次同步: ' + formatTime();
         })
         .catch(function(err) {
             console.error('Failed to fetch status:', err);
-            document.getElementById('lastUpdate').textContent = 'Error: ' + err.message;
+            document.getElementById('lastUpdate').textContent = '错误: ' + err.message;
         })
         .finally(function() { btn.classList.remove('spinning'); });
 }
 
 function renderSummary(s) {
     document.getElementById('summary').innerHTML =
-        '<div class="summary-card total"><div class="label">Configs</div><div class="value">' + s.config_count + '</div></div>' +
-        '<div class="summary-card total"><div class="label">Total Tasks</div><div class="value">' + s.total + '</div></div>' +
-        '<div class="summary-card completed"><div class="label">Completed</div><div class="value">' + s.completed + '</div></div>' +
-        '<div class="summary-card failed"><div class="label">Failed</div><div class="value">' + s.failed + '</div></div>' +
-        '<div class="summary-card running"><div class="label">Running</div><div class="value">' + s.running_count + '</div></div>';
+        '<div class="summary-card total"><div class="label">配置模板数</div><div class="value">' + s.config_count + '</div></div>' +
+        '<div class="summary-card total"><div class="label">总任务量</div><div class="value">' + s.total + '</div></div>' +
+        '<div class="summary-card completed"><div class="label">已成功</div><div class="value">' + s.completed + '</div></div>' +
+        '<div class="summary-card failed"><div class="label">已失败</div><div class="value">' + s.failed + '</div></div>' +
+        '<div class="summary-card running"><div class="label">运行中进程</div><div class="value">' + s.running_count + '</div></div>';
 }
 
 function classifyLogLine(line) {
@@ -581,14 +584,14 @@ function esc(s) {
 function renderTasks(tasks) {
     var el = document.getElementById('tasks');
     if (!tasks || tasks.length === 0) {
-        el.innerHTML = '<div class="empty-state"><div class="icon">&#x1f4c2;</div><h3>No Config Tasks Found</h3><p>Place YAML config files in <code>config_tasks/</code> directory</p></div>';
+        el.innerHTML = '<div class="empty-state"><div class="icon">&#x1f4c2;</div><h3>未检测到有效的配置任务</h3><p>请将 YAML 配置文件放置在 <code>config_tasks/</code> 目录下</p></div>';
         return;
     }
     var html = '';
     for (var i = 0; i < tasks.length; i++) {
         var t = tasks[i];
         if (t.error) {
-            html += '<div class="task-card"><div class="task-card-header"><div class="task-name"><span class="config-icon">&#x26a0;&#xfe0f;</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + esc(t.error) + '</div></div></div><span class="status-badge error"><span class="status-dot"></span> Error</span></div></div>';
+            html += '<div class="task-card"><div class="task-card-header"><div class="task-name"><span class="config-icon">&#x26a0;&#xfe0f;</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + esc(t.error) + '</div></div></div><span class="status-badge error"><span class="status-dot"></span> 配置错误</span></div></div>';
             continue;
         }
         html += renderTask(t);
@@ -602,12 +605,12 @@ function renderTask(t) {
     var completedPct = total > 0 ? (completed / total * 100) : 0;
     var failedPct = total > 0 ? (failed / total * 100) : 0;
     var statusClass = t.status === 'RUNNING' ? 'running' : 'stopped';
-    var statusLabel = t.status === 'RUNNING' ? 'Running (PID: ' + t.pid + ')' : 'Stopped';
+    var statusLabel = t.status === 'RUNNING' ? '运行中 (PID: ' + t.pid + ')' : '已停止';
 
     var errorHtml = '';
     var ek = t.error_categories ? Object.keys(t.error_categories) : [];
     if (ek.length > 0) {
-        errorHtml = '<div class="error-section"><h4>Error Breakdown</h4>';
+        errorHtml = '<div class="error-section"><h4>异常统计分类</h4>';
         for (var j = 0; j < ek.length; j++) {
             errorHtml += '<div class="error-item"><span class="error-name">' + esc(ek[j]) + '</span><span class="error-count">' + t.error_categories[ek[j]] + '</span></div>';
         }
@@ -616,7 +619,7 @@ function renderTask(t) {
 
     var logHtml = '';
     if (t.recent_log && t.recent_log.length > 0) {
-        logHtml = '<div class="log-section"><h4>Recent Log (last ' + t.recent_log.length + ' lines)</h4><div class="log-viewer">';
+        logHtml = '<div class="log-section"><h4>实时日志观察 (最后 ' + t.recent_log.length + ' 行)</h4><div class="log-viewer">';
         for (var k = 0; k < t.recent_log.length; k++) {
             var cls = classifyLogLine(t.recent_log[k]);
             logHtml += '<div class="log-line ' + cls + '">' + esc(t.recent_log[k]) + '</div>';
@@ -624,30 +627,30 @@ function renderTask(t) {
         logHtml += '</div></div>';
     }
 
-    var icon = t.status === 'RUNNING' ? '&#x1f7e2;' : '&#x26aa;';
-    var meta = esc(t.api_key_short);
-    if (t.pid_mtime) meta += ' &middot; started: ' + t.pid_mtime;
-    if (t.end_time) meta += ' &middot; ended: ' + t.end_time;
+    var icon = t.status === 'RUNNING' ? '&#x1f4c4;' : '&#x1f4c1;';
+    var meta = '🔑 ' + esc(t.api_key_short);
+    if (t.pid_mtime) meta += ' &middot; 启动时间: ' + t.pid_mtime;
+    if (t.end_time) meta += ' &middot; 结束时间: ' + t.end_time;
 
     var safeId = t.config_file.replace(/[^a-zA-Z0-9_-]/g, '_');
 
     return '<div class="task-card ' + (isExp ? 'expanded' : '') + '" id="card_' + safeId + '">' +
         '<div class="task-card-header" onclick="toggleCard(\'' + safeId + '\')">' +
         '<div class="task-name"><span class="seq-num">' + t.seq + '</span><span class="config-icon">' + icon + '</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + meta + '</div></div></div>' +
-        '<div style="display:flex;align-items:center;gap:12px;"><span class="status-badge ' + statusClass + '"><span class="status-dot"></span> ' + statusLabel + '</span><span class="expand-icon">&#x25bc;</span></div>' +
+        '<div style="display:flex;align-items:center;gap:16px;"><span class="status-badge ' + statusClass + '"><span class="status-dot"></span> ' + statusLabel + '</span><span class="expand-icon">&#x25bc;</span></div>' +
         '</div>' +
         '<div class="task-card-body">' +
         '<div class="progress-section"><div class="progress-bar-container">' +
-        '<div class="progress-completed" style="width:' + completedPct + '%">' + (completedPct >= 8 ? completed : '') + '</div>' +
-        '<div class="progress-failed" style="width:' + failedPct + '%">' + (failedPct >= 8 ? failed : '') + '</div>' +
+        '<div class="progress-completed" style="width:' + completedPct + '%">' + (completedPct >= 5 ? completed : '') + '</div>' +
+        '<div class="progress-failed" style="width:' + failedPct + '%">' + (failedPct >= 5 ? failed : '') + '</div>' +
         '<div class="progress-pending"></div>' +
-        '</div><div class="progress-labels"><span>&#x2705; ' + completed + ' completed &middot; &#x274c; ' + failed + ' failed &middot; &#x23f3; ' + pending + ' pending</span><span class="success-rate">' + t.success_rate + '% success</span></div></div>' +
+        '</div><div class="progress-labels"><span>🟢 ' + completed + ' 成功 &middot; 🔴 ' + failed + ' 失败 &middot; 🟡 ' + pending + ' 等待中</span><span class="success-rate">成功率: ' + t.success_rate + '%</span></div></div>' +
         '<div class="stats-grid">' +
-        '<div class="stat-item"><div class="stat-label">Total</div><div class="stat-value" style="color:var(--accent-blue)">' + total + '</div></div>' +
-        '<div class="stat-item"><div class="stat-label">Completed</div><div class="stat-value" style="color:var(--accent-green)">' + completed + '</div></div>' +
-        '<div class="stat-item"><div class="stat-label">Failed</div><div class="stat-value" style="color:var(--accent-red)">' + failed + '</div></div>' +
-        '<div class="stat-item"><div class="stat-label">Pending</div><div class="stat-value" style="color:var(--accent-yellow)">' + pending + '</div></div>' +
-        '<div class="stat-item"><div class="stat-label">Concurrent</div><div class="stat-value">' + t.concurrent_num + '</div></div>' +
+        '<div class="stat-item"><div class="stat-label">总任务数</div><div class="stat-value" style="color:var(--accent-blue)">' + total + '</div></div>' +
+        '<div class="stat-item"><div class="stat-label">成功量</div><div class="stat-value" style="color:var(--accent-green)">' + completed + '</div></div>' +
+        '<div class="stat-item"><div class="stat-label">失败量</div><div class="stat-value" style="color:var(--accent-red)">' + failed + '</div></div>' +
+        '<div class="stat-item"><div class="stat-label">待处理</div><div class="stat-value" style="color:var(--accent-yellow)">' + pending + '</div></div>' +
+        '<div class="stat-item"><div class="stat-label">并发控制数</div><div class="stat-value">' + t.concurrent_num + '</div></div>' +
         '</div>' +
         errorHtml + logHtml +
         '</div></div>';
