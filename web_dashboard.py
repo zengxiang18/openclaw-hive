@@ -246,6 +246,7 @@ def get_task_status(config_filename):
 def get_all_status():
     """Get status for all config tasks, sorted by date in filename (newest first).
     Configs without a date pattern in filename are excluded entirely.
+    Assign sequence numbers such that the newest config gets the largest seq number.
     """
     configs = list_config_files()
 
@@ -261,18 +262,19 @@ def get_all_status():
     # Sort dated configs by date descending (newest first)
     dated.sort(key=lambda x: x[0], reverse=True)
 
-    # Build results with sequence numbers
+    total = len(dated)
     results = []
+    # Assign seq numbers: newest (idx=0) gets total, oldest gets 1
     for idx, (_, cfg_file) in enumerate(dated, start=1):
         status = get_task_status(cfg_file)
-        status["seq"] = idx
+        status["seq"] = total - idx + 1   # Reverse order: newest gets highest number
         results.append(status)
 
     return results
 
 
 # ---------------------------------------------------------------------------
-# 精美浅色系 HTML 模板
+# 精美浅色系 HTML 模板（支持标签化元信息 + 倒序序号）
 # ---------------------------------------------------------------------------
 
 HTML_PAGE = r"""<!DOCTYPE html>
@@ -348,22 +350,23 @@ body {
 
 .container { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
 
-/* 概览卡片样式优化 */
+/* 概览卡片样式 - 增加填充和视觉效果 */
 .summary {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px; margin-bottom: 32px;
+    gap: 20px; margin-bottom: 32px;
 }
 .summary-card {
     background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: var(--radius-lg); padding: 16px 20px; display: flex; 
-    flex-direction: column; justify-content: space-between;
+    border-radius: var(--radius-lg); padding: 20px 24px; /* 增加填充 */
+    display: flex; flex-direction: column; justify-content: space-between;
     box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;
 }
 .summary-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .summary-card .label {
-    font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px;
+    font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;
+    letter-spacing: 0.3px;
 }
-.summary-card .value { font-size: 28px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, monospace; }
+.summary-card .value { font-size: 32px; font-weight: 700; font-family: monospace; }
 .summary-card.total { border-left: 4px solid var(--accent-blue); }
 .summary-card.total .value { color: var(--accent-blue); }
 .summary-card.completed { border-left: 4px solid var(--accent-green); }
@@ -373,7 +376,7 @@ body {
 .summary-card.running { border-left: 4px solid var(--accent-yellow); }
 .summary-card.running .value { color: var(--accent-yellow); }
 
-/* 任务卡片样式优化 */
+/* 任务卡片样式 */
 .task-card {
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: var(--radius-lg); margin-bottom: 16px; overflow: hidden; 
@@ -385,21 +388,45 @@ body {
     justify-content: space-between; cursor: pointer; user-select: none;
 }
 .task-card-header:hover { background: var(--bg-card-hover); }
-.task-name { display: flex; align-items: center; gap: 14px; }
+.task-name { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .task-name .seq-num {
     font-size: 13px; font-weight: 600; color: var(--text-secondary);
-    background: var(--bg-primary); width: 24px; height: 24px;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: var(--bg-primary); width: 28px; height: 28px;
+    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
     border: 1px solid var(--border-light);
 }
 .task-name .config-icon { font-size: 16px; display: flex; align-items: center; }
 .task-name h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
-.task-name .config-file { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-/* 优雅的状态标签 */
+/* 标签样式 - 用于 API Key、启动时间、结束时间 */
+.tag {
+    display: inline-block;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-right: 8px;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+.tag.key { background: var(--accent-blue-light); border-color: var(--accent-blue); color: var(--accent-blue); }
+.tag.start { background: var(--accent-green-light); border-color: var(--accent-green); color: var(--accent-green); }
+.tag.end { background: #f2f2f2; border-color: var(--border); color: var(--text-muted); }
+.tag i { margin-right: 4px; font-size: 10px; }
+
+.config-meta {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    gap: 6px;
+}
+
 .status-badge {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;
+    padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
 }
 .status-badge.running { background: var(--accent-green-light); color: var(--accent-green); }
 .status-badge.stopped { background: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border); }
@@ -416,7 +443,6 @@ body {
 .expand-icon { transition: transform 0.2s; color: var(--text-muted); font-size: 12px; }
 .task-card.expanded .expand-icon { transform: rotate(180deg); }
 
-/* 进度条美化 */
 .progress-section { margin-top: 20px; margin-bottom: 20px; }
 .progress-bar-container {
     background: #eaeef2; border-radius: 6px; height: 16px;
@@ -436,7 +462,6 @@ body {
 }
 .progress-labels .success-rate { font-weight: 600; color: var(--accent-green); }
 
-/* 数据格栅 */
 .stats-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 12px; margin-bottom: 20px;
@@ -445,7 +470,6 @@ body {
 .stat-item .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
 .stat-item .stat-value { font-size: 16px; font-weight: 600; font-family: monospace; }
 
-/* 错误细则美化 */
 .error-section { margin-bottom: 20px; }
 .error-section h4 { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600; }
 .error-item {
@@ -459,7 +483,6 @@ body {
     padding: 1px 6px; border-radius: 10px; font-weight: 600; font-size: 11px;
 }
 
-/* 日志查看器美化（浅色极客风） */
 .log-section h4 { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600; }
 .log-viewer {
     background: #24292f; border: 1px solid #1b1f23; border-radius: var(--radius-md);
@@ -498,7 +521,7 @@ body {
 
 <div class="header">
     <div class="header-left">
-        <div class="logo">&#x1f41d;</div>
+        <div class="logo">🐝</div>
         <h1>OpenClaw Hive Monitor</h1>
     </div>
     <div class="header-right">
@@ -512,7 +535,7 @@ body {
             </select>
         </div>
         <button class="refresh-btn" onclick="refreshData()">
-            <span class="refresh-icon">&#x21bb;</span> 刷新数据
+            <span class="refresh-icon">↻</span> 刷新数据
         </button>
         <span id="lastUpdate"></span>
     </div>
@@ -524,7 +547,7 @@ body {
 </div>
 
 <div class="footer">
-    OpenClaw Hive Task Monitor &middot; 数据自动读取自本地 config_tasks 与 outputs 目录
+    OpenClaw Hive Task Monitor · 数据自动读取自本地 config_tasks 与 outputs 目录
 </div>
 
 <script>
@@ -561,11 +584,11 @@ function refreshData() {
 
 function renderSummary(s) {
     document.getElementById('summary').innerHTML =
-        '<div class="summary-card total"><div class="label">配置模板数</div><div class="value">' + s.config_count + '</div></div>' +
-        '<div class="summary-card total"><div class="label">总任务量</div><div class="value">' + s.total + '</div></div>' +
-        '<div class="summary-card completed"><div class="label">已成功</div><div class="value">' + s.completed + '</div></div>' +
-        '<div class="summary-card failed"><div class="label">已失败</div><div class="value">' + s.failed + '</div></div>' +
-        '<div class="summary-card running"><div class="label">运行中进程</div><div class="value">' + s.running_count + '</div></div>';
+        '<div class="summary-card total"><div class="label">📋 配置模板数</div><div class="value">' + s.config_count + '</div></div>' +
+        '<div class="summary-card total"><div class="label">📊 总任务量</div><div class="value">' + s.total + '</div></div>' +
+        '<div class="summary-card completed"><div class="label">✅ 已成功</div><div class="value">' + s.completed + '</div></div>' +
+        '<div class="summary-card failed"><div class="label">❌ 已失败</div><div class="value">' + s.failed + '</div></div>' +
+        '<div class="summary-card running"><div class="label">⚙️ 运行中进程</div><div class="value">' + s.running_count + '</div></div>';
 }
 
 function classifyLogLine(line) {
@@ -584,14 +607,14 @@ function esc(s) {
 function renderTasks(tasks) {
     var el = document.getElementById('tasks');
     if (!tasks || tasks.length === 0) {
-        el.innerHTML = '<div class="empty-state"><div class="icon">&#x1f4c2;</div><h3>未检测到有效的配置任务</h3><p>请将 YAML 配置文件放置在 <code>config_tasks/</code> 目录下</p></div>';
+        el.innerHTML = '<div class="empty-state"><div class="icon">📂</div><h3>未检测到有效的配置任务</h3><p>请将 YAML 配置文件放置在 <code>config_tasks/</code> 目录下</p></div>';
         return;
     }
     var html = '';
     for (var i = 0; i < tasks.length; i++) {
         var t = tasks[i];
         if (t.error) {
-            html += '<div class="task-card"><div class="task-card-header"><div class="task-name"><span class="config-icon">&#x26a0;&#xfe0f;</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + esc(t.error) + '</div></div></div><span class="status-badge error"><span class="status-dot"></span> 配置错误</span></div></div>';
+            html += '<div class="task-card"><div class="task-card-header"><div class="task-name"><span class="config-icon">⚠️</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + esc(t.error) + '</div></div></div><span class="status-badge error"><span class="status-dot"></span> 配置错误</span></div></div>';
             continue;
         }
         html += renderTask(t);
@@ -627,24 +650,42 @@ function renderTask(t) {
         logHtml += '</div></div>';
     }
 
-    var icon = t.status === 'RUNNING' ? '&#x1f4c4;' : '&#x1f4c1;';
-    var meta = '🔑 ' + esc(t.api_key_short);
-    if (t.pid_mtime) meta += ' &middot; 启动时间: ' + t.pid_mtime;
-    if (t.end_time) meta += ' &middot; 结束时间: ' + t.end_time;
+    var icon = t.status === 'RUNNING' ? '📄' : '📁';
+    
+    // 构建标签式元信息
+    var metaHtml = '<div class="config-meta">';
+    // API Key 标签
+    metaHtml += '<span class="tag key"><i>🔑</i> ' + esc(t.api_key_short) + '</span>';
+    // 启动时间标签
+    if (t.pid_mtime) {
+        metaHtml += '<span class="tag start"><i>▶️</i> 启动: ' + t.pid_mtime + '</span>';
+    }
+    // 结束时间标签
+    if (t.end_time) {
+        metaHtml += '<span class="tag end"><i>⏹️</i> 结束: ' + t.end_time + '</span>';
+    }
+    metaHtml += '</div>';
 
     var safeId = t.config_file.replace(/[^a-zA-Z0-9_-]/g, '_');
 
     return '<div class="task-card ' + (isExp ? 'expanded' : '') + '" id="card_' + safeId + '">' +
         '<div class="task-card-header" onclick="toggleCard(\'' + safeId + '\')">' +
-        '<div class="task-name"><span class="seq-num">' + t.seq + '</span><span class="config-icon">' + icon + '</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + meta + '</div></div></div>' +
-        '<div style="display:flex;align-items:center;gap:16px;"><span class="status-badge ' + statusClass + '"><span class="status-dot"></span> ' + statusLabel + '</span><span class="expand-icon">&#x25bc;</span></div>' +
+        '<div class="task-name">' +
+            '<span class="seq-num">' + t.seq + '</span>' +
+            '<span class="config-icon">' + icon + '</span>' +
+            '<div><h3>' + esc(t.config_file) + '</h3>' + metaHtml + '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:16px;">' +
+            '<span class="status-badge ' + statusClass + '"><span class="status-dot"></span> ' + statusLabel + '</span>' +
+            '<span class="expand-icon">▼</span>' +
+        '</div>' +
         '</div>' +
         '<div class="task-card-body">' +
         '<div class="progress-section"><div class="progress-bar-container">' +
         '<div class="progress-completed" style="width:' + completedPct + '%">' + (completedPct >= 5 ? completed : '') + '</div>' +
         '<div class="progress-failed" style="width:' + failedPct + '%">' + (failedPct >= 5 ? failed : '') + '</div>' +
         '<div class="progress-pending"></div>' +
-        '</div><div class="progress-labels"><span>🟢 ' + completed + ' 成功 &middot; 🔴 ' + failed + ' 失败 &middot; 🟡 ' + pending + ' 等待中</span><span class="success-rate">成功率: ' + t.success_rate + '%</span></div></div>' +
+        '</div><div class="progress-labels"><span>🟢 ' + completed + ' 成功 &nbsp; 🔴 ' + failed + ' 失败 &nbsp; 🟡 ' + pending + ' 等待中</span><span class="success-rate">成功率: ' + t.success_rate + '%</span></div></div>' +
         '<div class="stats-grid">' +
         '<div class="stat-item"><div class="stat-label">总任务数</div><div class="stat-value" style="color:var(--accent-blue)">' + total + '</div></div>' +
         '<div class="stat-item"><div class="stat-label">成功量</div><div class="stat-value" style="color:var(--accent-green)">' + completed + '</div></div>' +
@@ -740,20 +781,20 @@ def main():
 
     configs = list_config_files()
     print("=" * 50)
-    print("  \U0001f41d OpenClaw Hive Task Monitor")
-    print(f"  Dashboard: http://{args.host}:{args.port}")
-    print(f"  Config dir: {CONFIG_TASKS_DIR}")
-    print(f"  Outputs dir: {OUTPUTS_DIR}")
-    print(f"  Configs found: {len(configs)}")
-    for c in configs:
-        print(f"    - {c}")
-    print("=" * 50)
+    print("   🐝 OpenClaw Hive 任务监控台")
+    print(f"  🌐 仪表盘地址: http://{args.host}:{args.port}")
+    print(f"  📁 配置目录:  {CONFIG_TASKS_DIR}")
+    print(f"  📂 输出目录: {OUTPUTS_DIR}")
+    print(f"  📄 发现配置数: {len(configs)}")
+    # for c in configs:
+    #     print(f"    - {c}")
+    # print("=" * 50)
 
     server = HTTPServer((args.host, args.port), DashboardHandler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nShutting down dashboard...")
+        print("\n✨ 正在关闭监控面板...")
         server.server_close()
 
 
