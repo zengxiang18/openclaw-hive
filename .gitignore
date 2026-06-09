@@ -1,0 +1,5 @@
+config_tasks/
+serper/
+env_info.db
+__pycache__/
+*.pyc

@@ -1,0 +1,7 @@
+aiofiles
+omegaconf
+httpx
+httpx_sse
+pydantic
+loguru
+aio_pika

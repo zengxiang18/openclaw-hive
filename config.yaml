@@ -1,0 +1,77 @@
+remote_server:
+  schema: http
+  host: 127.0.0.1
+  port: 8080
+  project_id: openclaw
+  user_id: xxx
+  url_path: /v1/env/gem
+  http_client:
+    max_retry_count: 1
+    connect_timeout: 10.0
+    read_timeout: 180.0
+    write_timeout: 60.0
+
+
+s3:
+  s3_uploader_script: /home/ma-user/obsutil/obsutil
+  s3_download_script: /home/ma-user/obsutil/obsutil
+  bucket_name: "obs://rl-agentdata"
+
+
+env_make:
+  image_name: xxxx
+  wait_for_ready: true
+  wait_timeout: 300
+  env_id: null
+  runtime_type: k8s  # 运行时类型: k8s | docker | local
+  rabbitmq:
+    is_use: false  # 是否使用rabbitmq进行make
+    url: "xxx"
+    queue: "xxx"
+    priority: 10
+  args:
+    resources:
+      cpu_request: "1"
+      cpu_limit: "2"
+      memory_request: "5Gi"
+      memory_limit: "8Gi"
+    env:
+      - name: PIP_INDEX_URL
+        value: "https://mirrors.huaweicloud.com/repository/pypi/simple"
+      - name: PIP_TRUSTED_HOST
+        value: "mirrors.huaweicloud.com"
+      - name: NODE_TLS_REJECT_UNAUTHORIZED
+        value: "0"
+      - name: SERPER_API_KEY
+        value: your-api-key
+
+
+run_config:
+  start_index: 0      # 开始执行任务的索引号，有时候需要跳过部分数据
+  total_num: 0      # 任务总数, 0表示不限制任务数量
+  concurrent_num: 100   # 并发数 claude 100~150
+  sandbox:
+    result_log: "run.log"
+    openclaw_local_config_file: "uploads/openclaw.json"
+    openclaw_api_key: sk-xxxxx-api
+    user_proxy_model_local_file: "uploads/user_proxy_model.json"
+    openclaw_start_timeout: 80  # openclaw 镜像版本号大于0.0.6时 设大于60，启动有点慢
+  task:
+    task_input_path: "uploads/configs"  # 任务输入路径
+    task_output_path: "outputs"  # 任务输出路径
+    task_complete_record: "complete.jsonl"  # 完成任务记录文件
+    task_failed_record: "failed.jsonl"  # 失败任务记录文件
+    task_download_path: "downloads"
+    main_code_tar: "uploads/openclaw-task.tar"
+    main_code_dir: ""  # 源码目录路径，非空时自动打包替代 main_code_tar，如 "openclaw-task"
+    main_python_file: "openclaw_automation.py"  # start脚本文件
+  obs:
+    download_timeout: 1200
+    upload_timeout: 900
+    traj_save_bucket: "obs://rl-agentdata"
+    # 注意，traj_save_path 后面不要加 "/"，否则会有两个 "//"在OBS路径上
+    traj_save_path: "openclaw_trajs/traj_0522_webconfig"
+    skill_download_path: "skills/260325/skill_localize/skills_library"
+    user_config_download_path: "task_data/260520/web_configs"
+    user_profile_download_path: 
+    agents_download_path: "task_data/260413_noenv/noenv_configs/agents"

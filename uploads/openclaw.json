@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.2-3",
+    "lastTouchedAt": "2026-02-04T10:08:33.507Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-02-04T07:00:18.988Z",
+    "lastRunVersion": "2026.2.2-3",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local"
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "local": {
+        "baseUrl": "http://192.168.30.95:8084",
+        "apiKey": "your-api-key",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "claude-opus-4-7-thinking",
+            "name": "claude-opus-4-7-thinking",
+            "api": "anthropic-messages",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 327680,
+            "compat": {
+              "maxTokensField": "max_tokens"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "local/claude-opus-4-7-thinking"
+      },
+      "models": {
+        "local/claude-opus-4-7-thinking": {}
+      },
+      "workspace": "/home/ma-user/.openclaw/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "controlUi": {
+      "allowedOrigins": ["null"]
+    },
+    "auth": {
+      "mode": "token",
+      "token": "your-token"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    }
+  },
+  "plugins": {                                                                                                                                                                                                        
+      "entries": {                                                                                                                                                                                                      
+        "microsoft":       { "enabled": false },                                                                                                                                                                        
+        "web-readability": { "enabled": false }                                                                                                                                                                         
+      }                                                                                                                                                                                                                 
+  },   
+  "tools": {
+    "deny": ["web_search"],
+    "web": {
+      "search": {
+        "enabled": true,
+        "apiKey": "your-api-key",
+        "timeoutSeconds": 600
+      },
+      "fetch": {
+        "enabled": true
+      }
+    }
+  },
+  "browser": {
+    "enabled": true,
+    "defaultProfile": "chrome",
+    "headless": true,
+    "noSandbox": true,
+    "attachOnly": false,
+    "ssrfPolicy": {
+      "dangerouslyAllowPrivateNetwork": true
+    },
+    "remoteCdpTimeoutMs": 5000,
+    "remoteCdpHandshakeTimeoutMs": 5000,
+    "color": "#FF4500",
+    "profiles": {
+      "openclaw": {
+        "cdpPort": 18800,
+        "color": "#FF4500"
+      },
+      "chrome": {
+        "cdpPort": 9222,
+        "color": "#FF4500"
+      }
+    }
+  }
+}
