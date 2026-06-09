@@ -245,7 +245,7 @@ def get_task_status(config_filename):
 
 def get_all_status():
     """Get status for all config tasks, sorted by date in filename (newest first).
-    Configs without a date pattern in filename are excluded from stats display.
+    Configs without a date pattern in filename are excluded entirely.
     """
     configs = list_config_files()
 
@@ -253,13 +253,10 @@ def get_all_status():
     date_pattern = re.compile(r"(\d{4})")
 
     dated = []   # (date_str, config_file)
-    undated = [] # config_file without date
     for cfg_file in configs:
         m = date_pattern.search(cfg_file)
         if m:
             dated.append((m.group(1), cfg_file))
-        else:
-            undated.append(cfg_file)
 
     # Sort dated configs by date descending (newest first)
     dated.sort(key=lambda x: x[0], reverse=True)
@@ -269,12 +266,6 @@ def get_all_status():
     for idx, (_, cfg_file) in enumerate(dated, start=1):
         status = get_task_status(cfg_file)
         status["seq"] = idx
-        results.append(status)
-
-    # Undated configs get no seq (excluded from main display)
-    for cfg_file in undated:
-        status = get_task_status(cfg_file)
-        status["seq"] = 0
         results.append(status)
 
     return results
@@ -292,20 +283,20 @@ HTML_PAGE = r"""<!DOCTYPE html>
 <title>OpenClaw Hive - Task Monitor</title>
 <style>
 :root {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-card: #1e293b;
-    --bg-card-hover: #334155;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f1f5f9;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
     --accent-blue: #3b82f6;
-    --accent-green: #22c55e;
-    --accent-red: #ef4444;
-    --accent-yellow: #eab308;
-    --accent-purple: #a855f7;
-    --border: #334155;
-    --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+    --accent-green: #16a34a;
+    --accent-red: #dc2626;
+    --accent-yellow: #ca8a04;
+    --accent-purple: #7c3aed;
+    --border: #e2e8f0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -320,12 +311,11 @@ body {
 .header-left { display: flex; align-items: center; gap: 12px; }
 .header h1 {
     font-size: 20px; font-weight: 700;
-    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    color: var(--accent-blue);
 }
 .header .logo {
     width: 32px; height: 32px;
-    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    background: var(--accent-blue);
     border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;
 }
 .header-right {
@@ -378,6 +368,10 @@ body {
 }
 .task-card-header:hover { background: var(--bg-card-hover); }
 .task-name { display: flex; align-items: center; gap: 12px; }
+.task-name .seq-num {
+    font-size: 16px; font-weight: 700; color: var(--accent-blue);
+    min-width: 28px; text-align: center;
+}
 .task-name .config-icon { font-size: 20px; }
 .task-name h3 { font-size: 16px; font-weight: 600; }
 .task-name .config-file { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
@@ -387,22 +381,22 @@ body {
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
 }
 .status-badge.running {
-    background: rgba(234,179,8,0.15); color: var(--accent-yellow);
-    border: 1px solid rgba(234,179,8,0.3);
+    background: #fef9c3; color: #a16207;
+    border: 1px solid #fde047;
 }
 .status-badge.stopped {
-    background: rgba(100,116,139,0.15); color: var(--text-muted);
-    border: 1px solid rgba(100,116,139,0.3);
+    background: #f1f5f9; color: var(--text-muted);
+    border: 1px solid #e2e8f0;
 }
 .status-badge.error {
-    background: rgba(239,68,68,0.15); color: var(--accent-red);
-    border: 1px solid rgba(239,68,68,0.3);
+    background: #fef2f2; color: var(--accent-red);
+    border: 1px solid #fecaca;
 }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .status-badge.running .status-dot {
-    background: var(--accent-yellow); animation: pulse 2s infinite;
+    background: #eab308; animation: pulse 2s infinite;
 }
-.status-badge.stopped .status-dot { background: var(--text-muted); }
+.status-badge.stopped .status-dot { background: #cbd5e1; }
 .status-badge.error .status-dot { background: var(--accent-red); }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
@@ -413,7 +407,7 @@ body {
 
 .progress-section { margin-bottom: 20px; }
 .progress-bar-container {
-    background: var(--bg-primary); border-radius: 8px; height: 28px;
+    background: #f1f5f9; border-radius: 8px; height: 28px;
     overflow: hidden; display: flex; margin-bottom: 8px;
 }
 .progress-completed {
@@ -426,7 +420,7 @@ body {
     transition: width 0.5s ease; display: flex; align-items: center;
     justify-content: center; font-size: 11px; font-weight: 600; color: white; min-width: 0;
 }
-.progress-pending { background: var(--bg-primary); height: 100%; flex: 1; }
+.progress-pending { background: #f1f5f9; height: 100%; flex: 1; }
 .progress-labels {
     display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);
 }
@@ -436,7 +430,7 @@ body {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 12px; margin-bottom: 20px;
 }
-.stat-item { background: var(--bg-primary); border-radius: 8px; padding: 12px; text-align: center; }
+.stat-item { background: #f8fafc; border-radius: 8px; padding: 12px; text-align: center; }
 .stat-item .stat-label {
     font-size: 11px; color: var(--text-muted); text-transform: uppercase;
     letter-spacing: 0.5px; margin-bottom: 4px;
@@ -450,7 +444,7 @@ body {
 }
 .error-item {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; background: var(--bg-primary); border-radius: 6px;
+    padding: 8px 12px; background: #fef2f2; border-radius: 6px;
     margin-bottom: 4px; font-size: 13px;
 }
 .error-item .error-name { color: var(--text-secondary); }
@@ -464,7 +458,7 @@ body {
     text-transform: uppercase; letter-spacing: 0.5px;
 }
 .log-viewer {
-    background: #0c0e14; border: 1px solid var(--border); border-radius: 8px;
+    background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
     padding: 12px; max-height: 300px; overflow-y: auto;
     font-family: 'Cascadia Code','Fira Code','Consolas',monospace;
     font-size: 12px; line-height: 1.6;
@@ -473,9 +467,9 @@ body {
 .log-viewer::-webkit-scrollbar-track { background: transparent; }
 .log-viewer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .log-line { color: var(--text-secondary); white-space: pre-wrap; word-break: break-all; }
-.log-line.error { color: var(--accent-red); }
-.log-line.warning { color: var(--accent-yellow); }
-.log-line.success { color: var(--accent-green); }
+.log-line.error { color: #dc2626; }
+.log-line.warning { color: #ca8a04; }
+.log-line.success { color: #16a34a; }
 
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
 .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
@@ -565,9 +559,10 @@ function refreshData() {
 function renderSummary(s) {
     document.getElementById('summary').innerHTML =
         '<div class="summary-card total"><div class="label">Configs</div><div class="value">' + s.config_count + '</div></div>' +
+        '<div class="summary-card total"><div class="label">Total Tasks</div><div class="value">' + s.total + '</div></div>' +
         '<div class="summary-card completed"><div class="label">Completed</div><div class="value">' + s.completed + '</div></div>' +
         '<div class="summary-card failed"><div class="label">Failed</div><div class="value">' + s.failed + '</div></div>' +
-        '<div class="summary-card running"><div class="label">Running Tasks</div><div class="value">' + s.running_count + '</div></div>';
+        '<div class="summary-card running"><div class="label">Running</div><div class="value">' + s.running_count + '</div></div>';
 }
 
 function classifyLogLine(line) {
@@ -592,8 +587,6 @@ function renderTasks(tasks) {
     var html = '';
     for (var i = 0; i < tasks.length; i++) {
         var t = tasks[i];
-        // Skip configs without date (seq=0)
-        if (!t.seq) continue;
         if (t.error) {
             html += '<div class="task-card"><div class="task-card-header"><div class="task-name"><span class="config-icon">&#x26a0;&#xfe0f;</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + esc(t.error) + '</div></div></div><span class="status-badge error"><span class="status-dot"></span> Error</span></div></div>';
             continue;
@@ -632,16 +625,15 @@ function renderTask(t) {
     }
 
     var icon = t.status === 'RUNNING' ? '&#x1f7e2;' : '&#x26aa;';
-    var meta = esc(t.api_key_short) + ' &middot; concurrent: ' + t.concurrent_num;
+    var meta = esc(t.api_key_short);
     if (t.pid_mtime) meta += ' &middot; started: ' + t.pid_mtime;
     if (t.end_time) meta += ' &middot; ended: ' + t.end_time;
 
     var safeId = t.config_file.replace(/[^a-zA-Z0-9_-]/g, '_');
-    var seqLabel = t.seq ? '#' + t.seq + ' ' : '';
 
     return '<div class="task-card ' + (isExp ? 'expanded' : '') + '" id="card_' + safeId + '">' +
         '<div class="task-card-header" onclick="toggleCard(\'' + safeId + '\')">' +
-        '<div class="task-name"><span class="config-icon">' + icon + '</span><div><h3>' + seqLabel + esc(t.config_file) + '</h3><div class="config-file">' + meta + '</div></div></div>' +
+        '<div class="task-name"><span class="seq-num">' + t.seq + '</span><span class="config-icon">' + icon + '</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + meta + '</div></div></div>' +
         '<div style="display:flex;align-items:center;gap:12px;"><span class="status-badge ' + statusClass + '"><span class="status-dot"></span> ' + statusLabel + '</span><span class="expand-icon">&#x25bc;</span></div>' +
         '</div>' +
         '<div class="task-card-body">' +
