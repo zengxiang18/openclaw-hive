@@ -209,12 +209,27 @@ def get_task_status(config_filename):
     if os.path.exists(pid_file):
         pid_mtime = datetime.fromtimestamp(os.path.getmtime(pid_file)).strftime("%Y-%m-%d %H:%M:%S")
 
+    # End time: log file's last modification time, only when process is stopped
+    end_time = None
+    if not is_alive:
+        log_for_time = log_file if os.path.exists(log_file) else (clean_log_file if os.path.exists(clean_log_file) else None)
+        if log_for_time:
+            end_time = datetime.fromtimestamp(os.path.getmtime(log_for_time)).strftime("%Y-%m-%d %H:%M:%S")
+
+    # API key short display
+    api_key = run_cfg.sandbox.get("openclaw_api_key", "")
+    if api_key and len(api_key) >= 4:
+        api_key_short = "key-" + api_key[-4:]
+    else:
+        api_key_short = "nokey"
+
     return {
         "config_file": config_filename,
         "output_dir": output_dir,
         "status": proc_status,
         "pid": pid if is_alive else None,
         "pid_mtime": pid_mtime,
+        "end_time": end_time,
         "total": total,
         "completed": done,
         "failed": fail,
@@ -222,18 +237,46 @@ def get_task_status(config_filename):
         "success_rate": round(rate, 1),
         "concurrent_num": run_cfg.concurrent_num,
         "start_index": run_cfg.start_index,
-        "runtime_type": cfg.env_make.get("runtime_type", "unknown"),
+        "api_key_short": api_key_short,
         "error_categories": dict(error_categories.most_common()),
         "recent_log": recent_log,
     }
 
 
 def get_all_status():
-    """Get status for all config tasks."""
+    """Get status for all config tasks, sorted by date in filename (newest first).
+    Configs without a date pattern in filename are excluded from stats display.
+    """
     configs = list_config_files()
-    results = []
+
+    # Extract date from filename (e.g. config_0609_demo.yaml -> 0609)
+    date_pattern = re.compile(r"(\d{4})")
+
+    dated = []   # (date_str, config_file)
+    undated = [] # config_file without date
     for cfg_file in configs:
-        results.append(get_task_status(cfg_file))
+        m = date_pattern.search(cfg_file)
+        if m:
+            dated.append((m.group(1), cfg_file))
+        else:
+            undated.append(cfg_file)
+
+    # Sort dated configs by date descending (newest first)
+    dated.sort(key=lambda x: x[0], reverse=True)
+
+    # Build results with sequence numbers
+    results = []
+    for idx, (_, cfg_file) in enumerate(dated, start=1):
+        status = get_task_status(cfg_file)
+        status["seq"] = idx
+        results.append(status)
+
+    # Undated configs get no seq (excluded from main display)
+    for cfg_file in undated:
+        status = get_task_status(cfg_file)
+        status["seq"] = 0
+        results.append(status)
+
     return results
 
 
@@ -466,10 +509,9 @@ body {
             <span>Auto-refresh:</span>
             <select id="refreshInterval" onchange="setAutoRefresh(this.value)">
                 <option value="0">Off</option>
-                <option value="5" selected>5s</option>
-                <option value="10">10s</option>
-                <option value="30">30s</option>
-                <option value="60">60s</option>
+                <option value="120" selected>2min</option>
+                <option value="300">5min</option>
+                <option value="600">10min</option>
             </select>
         </div>
         <button class="refresh-btn" onclick="refreshData()">
@@ -522,7 +564,7 @@ function refreshData() {
 
 function renderSummary(s) {
     document.getElementById('summary').innerHTML =
-        '<div class="summary-card total"><div class="label">Total Tasks</div><div class="value">' + s.total + '</div></div>' +
+        '<div class="summary-card total"><div class="label">Configs</div><div class="value">' + s.config_count + '</div></div>' +
         '<div class="summary-card completed"><div class="label">Completed</div><div class="value">' + s.completed + '</div></div>' +
         '<div class="summary-card failed"><div class="label">Failed</div><div class="value">' + s.failed + '</div></div>' +
         '<div class="summary-card running"><div class="label">Running Tasks</div><div class="value">' + s.running_count + '</div></div>';
@@ -550,6 +592,8 @@ function renderTasks(tasks) {
     var html = '';
     for (var i = 0; i < tasks.length; i++) {
         var t = tasks[i];
+        // Skip configs without date (seq=0)
+        if (!t.seq) continue;
         if (t.error) {
             html += '<div class="task-card"><div class="task-card-header"><div class="task-name"><span class="config-icon">&#x26a0;&#xfe0f;</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + esc(t.error) + '</div></div></div><span class="status-badge error"><span class="status-dot"></span> Error</span></div></div>';
             continue;
@@ -588,14 +632,16 @@ function renderTask(t) {
     }
 
     var icon = t.status === 'RUNNING' ? '&#x1f7e2;' : '&#x26aa;';
-    var meta = esc(t.runtime_type) + ' &middot; concurrent: ' + t.concurrent_num;
+    var meta = esc(t.api_key_short) + ' &middot; concurrent: ' + t.concurrent_num;
     if (t.pid_mtime) meta += ' &middot; started: ' + t.pid_mtime;
+    if (t.end_time) meta += ' &middot; ended: ' + t.end_time;
 
     var safeId = t.config_file.replace(/[^a-zA-Z0-9_-]/g, '_');
+    var seqLabel = t.seq ? '#' + t.seq + ' ' : '';
 
     return '<div class="task-card ' + (isExp ? 'expanded' : '') + '" id="card_' + safeId + '">' +
         '<div class="task-card-header" onclick="toggleCard(\'' + safeId + '\')">' +
-        '<div class="task-name"><span class="config-icon">' + icon + '</span><div><h3>' + esc(t.config_file) + '</h3><div class="config-file">' + meta + '</div></div></div>' +
+        '<div class="task-name"><span class="config-icon">' + icon + '</span><div><h3>' + seqLabel + esc(t.config_file) + '</h3><div class="config-file">' + meta + '</div></div></div>' +
         '<div style="display:flex;align-items:center;gap:12px;"><span class="status-badge ' + statusClass + '"><span class="status-dot"></span> ' + statusLabel + '</span><span class="expand-icon">&#x25bc;</span></div>' +
         '</div>' +
         '<div class="task-card-body">' +
@@ -610,7 +656,6 @@ function renderTask(t) {
         '<div class="stat-item"><div class="stat-label">Failed</div><div class="stat-value" style="color:var(--accent-red)">' + failed + '</div></div>' +
         '<div class="stat-item"><div class="stat-label">Pending</div><div class="stat-value" style="color:var(--accent-yellow)">' + pending + '</div></div>' +
         '<div class="stat-item"><div class="stat-label">Concurrent</div><div class="stat-value">' + t.concurrent_num + '</div></div>' +
-        '<div class="stat-item"><div class="stat-label">Runtime</div><div class="stat-value" style="font-size:14px">' + esc(t.runtime_type) + '</div></div>' +
         '</div>' +
         errorHtml + logHtml +
         '</div></div>';
@@ -623,7 +668,7 @@ function toggleCard(safeId) {
 }
 
 refreshData();
-setAutoRefresh(5);
+setAutoRefresh(120);
 </script>
 </body>
 </html>"""
@@ -661,6 +706,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def _send_json(self):
         tasks = get_all_status()
         summary = {
+            "config_count": len(tasks),
             "total": sum(t.get("total", 0) for t in tasks if "error" not in t),
             "completed": sum(t.get("completed", 0) for t in tasks if "error" not in t),
             "failed": sum(t.get("failed", 0) for t in tasks if "error" not in t),
